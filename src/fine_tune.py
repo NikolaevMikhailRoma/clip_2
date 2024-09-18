@@ -1,4 +1,3 @@
-import os
 import torch
 from torch import nn
 from torch.optim import AdamW
@@ -8,13 +7,10 @@ from tqdm import tqdm
 from typing import List, Tuple
 import time
 from PIL import Image
-
-from config import global_epochs, device
-from dataloader import (
-    dataset, train_dataloader, val_dataloader, test_dataloader
-)
+import os
+from src.config import config  # Updated import
+from src.dataloader import train_dataloader, val_dataloader, test_dataloader, dataset
 from torch.optim.lr_scheduler import ReduceLROnPlateau
-
 
 class CustomCLIPModel(nn.Module):
     """Custom CLIP model with additional layers for fine-tuning."""
@@ -27,7 +23,7 @@ class CustomCLIPModel(nn.Module):
 
         # Get the output dimension of CLIP's image encoder
         with torch.no_grad():
-            dummy_image = torch.randn(1, 3, 224, 224).to(device)
+            dummy_image = torch.randn(1, 3, 224, 224).to(config.DEVICE)
             dummy_output = self.clip_model.get_image_features(dummy_image)
             clip_output_dim = dummy_output.shape[1]
 
@@ -54,7 +50,7 @@ class CustomCLIPModel(nn.Module):
             param.requires_grad = True
 
     def freeze_clip(self):
-        """Unfreeze CLIP model parameters for fine-tuning."""
+        """Freeze CLIP model parameters."""
         for param in self.clip_model.parameters():
             param.requires_grad = False
 
@@ -63,8 +59,8 @@ def train_stage1(
         model: CustomCLIPModel,
         train_dataloader: DataLoader,
         val_dataloader: DataLoader,
-        num_epochs: int = global_epochs
-) -> CustomCLIPModel:
+        num_epochs: int = config.GLOBAL_EPOCHS  # Updated to use config
+):
     """Train the custom layers of the CLIP model."""
     criterion = nn.CrossEntropyLoss()
     optimizer = AdamW(model.custom_layers.parameters(), lr=1e-3, weight_decay=0.01)
@@ -87,7 +83,7 @@ def train_stage1(
         train_progress_bar = tqdm(train_dataloader, desc=f"Stage 1 Training Epoch {epoch + 1}/{num_epochs}")
 
         for images, labels in train_progress_bar:
-            images, labels = images.to(device), labels.to(device)
+            images, labels = images.to(config.DEVICE), labels.to(config.DEVICE)
 
             outputs = model(images)
             loss = criterion(outputs, labels)
@@ -144,8 +140,8 @@ def train_stage2(
         model: CustomCLIPModel,
         train_dataloader: DataLoader,
         val_dataloader: DataLoader,
-        num_epochs: int = global_epochs
-) -> CustomCLIPModel:
+        num_epochs: int = config.GLOBAL_EPOCHS  # Updated to use config
+):
     """Fine-tune the entire CLIP model including custom layers."""
     model.unfreeze_clip()  # Unfreeze CLIP model parameters
 
@@ -170,7 +166,7 @@ def train_stage2(
         train_progress_bar = tqdm(train_dataloader, desc=f"Stage 2 Training Epoch {epoch + 1}/{num_epochs}")
 
         for images, labels in train_progress_bar:
-            images, labels = images.to(device), labels.to(device)
+            images, labels = images.to(config.DEVICE), labels.to(config.DEVICE)
 
             outputs = model(images)
             loss = criterion(outputs, labels)
@@ -241,7 +237,7 @@ def evaluate(
 
     with torch.no_grad():
         for images, labels in progress_bar:
-            images, labels = images.to(device), labels.to(device)
+            images, labels = images.to(config.DEVICE), labels.to(config.DEVICE)
 
             outputs = model(images)
             loss = criterion(outputs, labels)
@@ -278,13 +274,13 @@ def save_model(model: CustomCLIPModel, path: str) -> None:
     print(f"Model saved to {path}")
 
 
-def load_model(path: str, device: torch.device) -> Tuple[CustomCLIPModel, List[str]]:
+def load_model(path: str) -> Tuple[CustomCLIPModel, List[str]]:
     """Load a saved model from a file."""
-    checkpoint = torch.load(path, map_location=device)
-    clip_model = CLIPModel.from_pretrained(checkpoint['clip_model_name']).to(device)
+    checkpoint = torch.load(path, map_location=config.DEVICE)
+    clip_model = CLIPModel.from_pretrained(checkpoint['clip_model_name']).to(config.DEVICE)
     model = CustomCLIPModel(clip_model)
     model.load_state_dict(checkpoint['model_state_dict'])
-    model.to(device)
+    model.to(config.DEVICE)
     model.eval()
     print(f"Model loaded from {path}")
     return model, checkpoint['class_names']
@@ -293,7 +289,7 @@ def load_model(path: str, device: torch.device) -> Tuple[CustomCLIPModel, List[s
 def classify_image(model: CustomCLIPModel, processor: CLIPProcessor, image_path: str, class_names: List[str]) -> str:
     """Classify a single image using the trained model."""
     image = Image.open(image_path).convert('RGB')
-    inputs = processor(images=image, return_tensors="pt", padding=True).to(device)
+    inputs = processor(images=image, return_tensors="pt", padding=True).to(config.DEVICE)
 
     with torch.no_grad():
         outputs = model(inputs.pixel_values)
@@ -309,12 +305,11 @@ def fine_tune(
         train_dataloader: DataLoader,
         val_dataloader: DataLoader,
         test_dataloader: DataLoader,
-        device: torch.device,
         model_save_path: str = 'best_custom_clip_model_stage2.pth'
 ) -> None:
     """Two-stage fine-tuning of the CLIP model with custom layers."""
     # Stage 1: Train custom layers
-    custom_model = CustomCLIPModel(clip_model).to(device)
+    custom_model = CustomCLIPModel(clip_model).to(config.DEVICE)
     custom_model = train_stage1(custom_model, train_dataloader, val_dataloader)
 
     # Test after Stage 1
@@ -329,23 +324,23 @@ def fine_tune(
 
     # Test the best model
     print("Testing after Stage 2:")
-    best_model, _ = load_model(model_save_path, device)
+    best_model, _ = load_model(model_save_path)
     test(best_model, test_dataloader)
 
 
-def get_or_train_model(model_path: str, device: torch.device) -> Tuple[CustomCLIPModel, List[str]]:
-    """Get a trained model or train a new one if it doesn't exist."""
-    if os.path.exists(model_path):
-        return load_model(model_path, device)
-    else:
-        print(f"Model not found at {model_path}. Training new model...")
-        clip_model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32").to(device)
-        fine_tune(clip_model, train_dataloader, val_dataloader, test_dataloader, device, model_path)
-        return load_model(model_path, device)
+# def get_or_train_model(model_path: str, config.DEVICE: torch.config.DEVICE) -> Tuple[CustomCLIPModel, List[str]]:
+#     """Get a trained model or train a new one if it doesn't exist."""
+#     if os.path.exists(model_path):
+#         return load_model(model_path, config.DEVICE)
+#     else:
+#         print(f"Model not found at {model_path}. Training new model...")
+#         clip_model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32").to(config.DEVICE)
+#         fine_tune(clip_model, train_dataloader, val_dataloader, test_dataloader, config.DEVICE, model_path)
+#         return load_model(model_path, config.DEVICE)
 
 
 if __name__ == "__main__":
-    model_path = 'models/best_custom_clip_model_stage2.pth'
+    model_path = config.MODEL_PATH
 
     get_new_model = True
     if get_new_model:
@@ -353,10 +348,17 @@ if __name__ == "__main__":
             os.remove(model_path)
 
     # Get the model (load existing or train new)
-    model, class_names = get_or_train_model(model_path, device)
+    if os.path.exists(model_path):
+        model, class_names = load_model(model_path)
+    else:
+        print(f"Model not found at {model_path}. Training new model...")
+        clip_model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32").to(config.DEVICE)
+        fine_tune(clip_model, train_dataloader, val_dataloader, test_dataloader, model_path)
+        model, class_names = load_model(model_path)
 
     # Initialize CLIP processor
     processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
+
 
     # Example usage for image classification
     image_paths = [
