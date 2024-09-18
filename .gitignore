@@ -1,0 +1,37 @@
+# Ignore hidden folders
+.*/
+
+# Ignore pycache
+__pycache__/
+
+# Ignore Python virtual environments
+venv/
+env/
+
+# Ignore IDE specific files
+.vscode/
+.idea/
+
+# Ignore model files (if they're too large for GitHub)
+*.pth
+
+# Ignore system files
+.DS_Store
+Thumbs.db
+
+# Ignore log files
+*.log
+
+# Ignore sensitive configuration files
+config.ini
+secrets.json
+
+# Ignore compiled Python files
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore temporary files
+*.tmp
+*.bak
+*.swp
