@@ -131,6 +131,10 @@ You can modify the configuration settings in `src/config.py`. This includes path
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
+## Project Status
+
+Version 0.9. API works, some problems at docker. Project needed test at x64 machine
+
 ## License
 
 [Copy n enjoy]
