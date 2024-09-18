@@ -1,0 +1,11 @@
+torch
+torchvision
+transformers
+pillow
+numpy
+tqdm
+
+[dev]
+pytest
+flake8
+black

@@ -1,0 +1,111 @@
+Metadata-Version: 2.1
+Name: clip-brand-recognition
+Version: 0.1.0
+Summary: A brand recognition system using a fine-tuned CLIP model
+Home-page: https://github.com/your_username/model_clip_2
+Author: Your Name
+Author-email: your.email@example.com
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Requires-Python: >=3.7
+Description-Content-Type: text/markdown
+Provides-Extra: dev
+
+# CLIP Model for Brand Recognition
+
+## Overview
+
+This project implements a brand recognition system using a fine-tuned CLIP (Contrastive Language-Image Pre-training) model. It is designed to identify and classify different car brands from images.
+
+## Features
+
+- Fine-tuned CLIP model for car brand recognition
+- Custom layers added to the CLIP model for improved performance
+- Predictor class for easy image classification
+- Comprehensive test suite
+
+## Project Structure
+
+```
+model_clip_2/
+├── src/
+│   ├── config.py
+│   ├── dataloader.py
+│   ├── fine_tune.py
+│   ├── predictor.py
+│   └── models/
+│       └── best_custom_clip_model_stage2.pth
+├── tests/
+│   ├── test_predictor.py
+│   └── test_data/
+│       ├── test_image.jpg
+│       ├── test_image_1.jpg
+│       ├── test_image_2.jpg
+│       └── test_image_3.jpg
+├── data/
+│   └── [your dataset here]
+├── requirements.txt
+└── README.md
+```
+
+## Installation
+
+1. Clone the repository:
+   ```
+   git clone https://github.com/your_username/model_clip_2.git
+   cd model_clip_2
+   ```
+
+2. Create a virtual environment and activate it:
+   ```
+   python -m venv venv
+   source venv/bin/activate  # On Windows use `venv\Scripts\activate`
+   ```
+
+3. Install the required packages:
+   ```
+   pip install -r requirements.txt
+   ```
+
+## Usage
+
+1. Ensure your image dataset is placed in the `data/` directory.
+
+2. To train the model:
+   ```
+   python src/fine_tune.py
+   ```
+
+3. To make predictions using the trained model:
+   ```
+   python src/predictor.py
+   ```
+
+4. To run tests:
+   ```
+   python -m unittest discover tests
+   ```
+
+## Configuration
+
+You can modify the configuration settings in `src/config.py`. This includes paths, batch sizes, and other hyperparameters.
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+[Copy n enjoy]
+
+## Contact
+
+[NikMih] - [dog@dontknow.com]
+
+Project Link: https://github.com/NikolaevMikhailRoma/clip_2.git

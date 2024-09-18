@@ -12,6 +12,7 @@ from src.config import config  # Updated import
 from src.dataloader import train_dataloader, val_dataloader, test_dataloader, dataset
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
+
 class CustomCLIPModel(nn.Module):
     """Custom CLIP model with additional layers for fine-tuning."""
 

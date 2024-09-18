@@ -35,3 +35,6 @@ secrets.json
 *.tmp
 *.bak
 *.swp
+
+# Ignore logs
+logs/

@@ -2,14 +2,16 @@
 
 ## Overview
 
-This project implements a brand recognition system using a fine-tuned CLIP (Contrastive Language-Image Pre-training) model. It is designed to identify and classify different car brands from images.
+This project implements a brand recognition system using a fine-tuned CLIP (Contrastive Language-Image Pre-training) model. It is designed to identify and classify different car brands from images. The project now includes a FastAPI-based API for easy integration and usage.
 
 ## Features
 
 - Fine-tuned CLIP model for car brand recognition
 - Custom layers added to the CLIP model for improved performance
 - Predictor class for easy image classification
+- FastAPI-based API for remote image classification
 - Comprehensive test suite
+- Docker support for easy deployment
 
 ## Project Structure
 
@@ -20,6 +22,7 @@ model_clip_2/
 │   ├── dataloader.py
 │   ├── fine_tune.py
 │   ├── predictor.py
+│   ├── api.py
 │   └── models/
 │       └── best_custom_clip_model_stage2.pth
 ├── tests/
@@ -31,7 +34,9 @@ model_clip_2/
 │       └── test_image_3.jpg
 ├── data/
 │   └── [your dataset here]
+├── Dockerfile
 ├── requirements.txt
+├── setup.py
 └── README.md
 ```
 
@@ -56,22 +61,67 @@ model_clip_2/
 
 ## Usage
 
-1. Ensure your image dataset is placed in the `data/` directory.
+### Training the Model
 
-2. To train the model:
+To train the model:
+
+```
+python src/fine_tune.py
+```
+
+### Running the API
+
+To start the FastAPI server:
+
+```
+uvicorn src.api:app --host 0.0.0.0 --port 8000 --reload
+```
+
+### Using the API
+
+You can use the API to classify images by sending a POST request to the `/predict/` endpoint. Here's an example using Python:
+
+```python
+import requests
+
+url = "http://localhost:8000/predict/"
+data = {"url": "https://example.com/path/to/car_image.jpg"}
+
+response = requests.post(url, json=data)
+
+if response.status_code == 200:
+    result = response.json()
+    print(f"Predicted class: {result['predicted_class']}")
+else:
+    print(f"Error: {response.status_code}")
+    print(response.text)
+```
+
+Replace `"https://example.com/path/to/car_image.jpg"` with the URL of the image you want to classify.
+
+### Running Tests
+
+To run tests:
+
+```
+python -m unittest discover tests
+```
+
+## Docker
+
+To build and run the Docker container:
+
+1. Build the Docker image:
    ```
-   python src/fine_tune.py
+   docker build -t clip-brand-recognition .
    ```
 
-3. To make predictions using the trained model:
+2. Run the container:
    ```
-   python src/predictor.py
+   docker run -p 8000:80 clip-brand-recognition
    ```
 
-4. To run tests:
-   ```
-   python -m unittest discover tests
-   ```
+This will start the API server inside a Docker container, accessible at `http://localhost:8000`.
 
 ## Configuration
 
@@ -83,10 +133,10 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-[]
+[Copy n enjoy]
 
 ## Contact
 
-[] - []
+[NikMih] - [dog@dontknow.com]
 
 Project Link: https://github.com/NikolaevMikhailRoma/clip_2.git

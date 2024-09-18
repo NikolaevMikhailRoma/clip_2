@@ -1,0 +1,8 @@
+README.md
+setup.py
+src/clip_brand_recognition.egg-info/PKG-INFO
+src/clip_brand_recognition.egg-info/SOURCES.txt
+src/clip_brand_recognition.egg-info/dependency_links.txt
+src/clip_brand_recognition.egg-info/requires.txt
+src/clip_brand_recognition.egg-info/top_level.txt
+tests/test_predictor.py
